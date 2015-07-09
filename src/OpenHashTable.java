@@ -7,76 +7,112 @@ import java.io.*;
  * Created by youfar on 15/6/22.
  * 需要添加读文件      -- success
  * 添加时间           -- success
- * 开放定址法怎么回事，现在的实现就是把单词插到数组上
+ * 开放定址法         -- success按照算法导论的方法实现
  * 结果应该是什么样的
  */
 public class OpenHashTable implements MyHashTable{
 
-    private class Entry {
+    /*private class Entry {
         String key;
 
         public Entry(String key){
             this.key = key;
         }
-    }
+    }*/
 
     //final static int MAX = 500;
 
-    Entry[] table;
+    //Entry[] table;
+    String[] table;
 
     //int n = 0;
 
     int bucketSize;
 
     public OpenHashTable (int bucketSize) {
-        this.table = new Entry[bucketSize];
+        this.table = new String[bucketSize];
         this.bucketSize = bucketSize;
+        for(int i = 1; i < bucketSize; i++){
+            table[i] = "NIL";
+        }
     }
 
-    public boolean insert(String key){
+    //
+    /*public boolean insert(String key){
         /*if(search(key) == true)
-            return false;*/
+            return false;
         int value = this.myHash(key);
-        while(!table[value].key.equals(key)){
+        /*while(!table[value].key.equals(key)){
             value = (value + 1) % this.bucketSize;
         }
         table[value] = new Entry(key);
         return true;
+        for(int i = value; table[i] != null; i = (i+1) % this.bucketSize){
+            if(table[i].equals(key)){
+                break;
+            } else {
+                table[i] = key;
+            }
+        }
+
+        return true;
+    }*/
+
+    //按照算法导论上的伪代码来执行
+    public boolean insert(String key){
+        //int value = this.myHash(key);
+        for(int i = 0; i < this.bucketSize; i++){
+            int j = this.myHash(key, i);
+            if(table[j] == "NIL" || table[j] == "DELETED")
+                table[j] = key;
+                return true;
+        }
+        return true;
     }
 
-    //查找函数，找到返回true,找不到返回false
-    public boolean search(String key){
+    //查找函数，找到返回true,找不到返回false,有null错误
+    /*public boolean search(String key){
         for(int i = 0; i < this.bucketSize; i++){
-            if(table[i].key.equals(key)){
+            if(table[i].equals(key)){
                 return true;
+            }
+        }
+        return false;
+    }*/
+
+    //按照算法导论上伪代码来执行,字符串匹配相等不能用==号
+    public boolean search(String key){
+        int i = 0;
+        int j = this.myHash(key, i);
+
+        while(table[j] != "NIL" && i != this.bucketSize){
+            if(table[j].equals(key)){
+                return true;
+            } else {
+                i++;
             }
         }
         return false;
     }
 
     public boolean delete(String key){
-        /*if(n <= 0){
-            System.err.println("this data is not insert");
-            System.exit(1);
-        }*/
+
         for(int i = 0; i < this.bucketSize; i++){
-            if(table[i].key.equals(key)){
-                if(i+1 < this.bucketSize) {
-                    table[i] = table[i + 1];
-                    return true;
-                }
+            int j = this.myHash(key, i);
+            if(table[j].equals(key)){
+                table[j] = "DELETED";
+                return true;
             }
         }
-        table[--this.bucketSize] = null;
         return false;
     }
 
-    public int myHash(String str) {
+    public int myHash(String str, int value) {
         int sum = 0;
         for(int i = 0; i < str.length(); i++){
             sum += (int)str.charAt(i);
         }
-        int hashValue = sum%this.bucketSize;
+        int hashValue = (sum + value) % this.bucketSize;
         return hashValue;
         //return sum % this.bucketSize;
     }
@@ -109,7 +145,7 @@ public class OpenHashTable implements MyHashTable{
 
     public static void main(String[] args) {
         int dataNumber = 500;
-        double number = 500;
+        double number = 600;
         double loadFactor = dataNumber / number;
 
         OpenHashTable table = new OpenHashTable(600);
